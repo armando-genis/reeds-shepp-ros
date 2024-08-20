@@ -1,24 +1,15 @@
-#include <iostream>
-#include <vector>
-#include <tuple>
-#include <cmath>
-#include <algorithm>
-#include <numeric>  // Include this for std::accumulate
+#include "dubins_path.h"
 
-#include "matplotlibcpp.h"
-#include "draw.h"
+dubins_path::dubins_path() {
+    // Constructor code (if needed)
+}
 
-namespace plt = matplotlibcpp;
+dubins_path::~dubins_path() {
+    // Destructor code (if needed)
+}
 
-struct Path {
-    double length;
-    std::vector<std::string> mode;
-    std::vector<double> x;
-    std::vector<double> y;
-    std::vector<double> yaw;
-};
-
-double pi_2_pi(double theta) {
+double dubins_path::pi_2_pi(double theta) 
+{
     while (theta > M_PI) {
         theta -= 2.0 * M_PI;
     }
@@ -28,11 +19,13 @@ double pi_2_pi(double theta) {
     return theta;
 }
 
-double mod2pi(double theta) {
+double dubins_path::mod2pi(double theta) {
     return theta - 2.0 * M_PI * std::floor(theta / M_PI / 2.0);
 }
 
-std::tuple<double, double, double, std::vector<std::string>> LSL(double alpha, double beta, double dist) {
+// LSL, LSR, RSL, RSR, RLR, LRL
+
+std::tuple<double, double, double, std::vector<std::string>> dubins_path::LSL(double alpha, double beta, double dist) {
     double sin_a = std::sin(alpha);
     double sin_b = std::sin(beta);
     double cos_a = std::cos(alpha);
@@ -54,7 +47,7 @@ std::tuple<double, double, double, std::vector<std::string>> LSL(double alpha, d
     return {t_lsl, p_lsl, q_lsl, {"L", "S", "L"}};
 }
 
-std::tuple<double, double, double, std::vector<std::string>> RSR(double alpha, double beta, double dist) {
+std::tuple<double, double, double, std::vector<std::string>> dubins_path::RSR(double alpha, double beta, double dist) {
     double sin_a = std::sin(alpha);
     double sin_b = std::sin(beta);
     double cos_a = std::cos(alpha);
@@ -76,7 +69,7 @@ std::tuple<double, double, double, std::vector<std::string>> RSR(double alpha, d
     return {t_rsr, p_rsr, q_rsr, {"R", "S", "R"}};
 }
 
-std::tuple<double, double, double, std::vector<std::string>> LSR(double alpha, double beta, double dist) {
+std::tuple<double, double, double, std::vector<std::string>> dubins_path::LSR(double alpha, double beta, double dist) {
     double sin_a = std::sin(alpha);
     double sin_b = std::sin(beta);
     double cos_a = std::cos(alpha);
@@ -98,7 +91,7 @@ std::tuple<double, double, double, std::vector<std::string>> LSR(double alpha, d
     return {t_lsr, p_lsr, q_lsr, {"L", "S", "R"}};
 }
 
-std::tuple<double, double, double, std::vector<std::string>> RSL(double alpha, double beta, double dist) {
+std::tuple<double, double, double, std::vector<std::string>> dubins_path::RSL(double alpha, double beta, double dist) {
     double sin_a = std::sin(alpha);
     double sin_b = std::sin(beta);
     double cos_a = std::cos(alpha);
@@ -120,7 +113,7 @@ std::tuple<double, double, double, std::vector<std::string>> RSL(double alpha, d
     return {t_rsl, p_rsl, q_rsl, {"R", "S", "L"}};
 }
 
-std::tuple<double, double, double, std::vector<std::string>> RLR(double alpha, double beta, double dist) {
+std::tuple<double, double, double, std::vector<std::string>> dubins_path::RLR(double alpha, double beta, double dist) {
     double sin_a = std::sin(alpha);
     double sin_b = std::sin(beta);
     double cos_a = std::cos(alpha);
@@ -140,7 +133,7 @@ std::tuple<double, double, double, std::vector<std::string>> RLR(double alpha, d
     return {t_rlr, p_rlr, q_rlr, {"R", "L", "R"}};
 }
 
-std::tuple<double, double, double, std::vector<std::string>> LRL(double alpha, double beta, double dist) {
+std::tuple<double, double, double, std::vector<std::string>> dubins_path::LRL(double alpha, double beta, double dist) {
     double sin_a = std::sin(alpha);
     double sin_b = std::sin(beta);
     double cos_a = std::cos(alpha);
@@ -160,7 +153,7 @@ std::tuple<double, double, double, std::vector<std::string>> LRL(double alpha, d
     return {t_lrl, p_lrl, q_lrl, {"L", "R", "L"}};
 }
 
-std::tuple<std::vector<double>, std::vector<double>, std::vector<double>, std::vector<int>> interpolate(
+std::tuple<std::vector<double>, std::vector<double>, std::vector<double>, std::vector<int>> dubins_path::interpolate(
     int ind, double l, const std::string &m, double maxc, double ox, double oy, double oyaw, 
     std::vector<double> &px, std::vector<double> &py, std::vector<double> &pyaw, std::vector<int> &directions) {
 
@@ -199,7 +192,7 @@ std::tuple<std::vector<double>, std::vector<double>, std::vector<double>, std::v
 }
 
 
-std::tuple<std::vector<double>, std::vector<double>, std::vector<double>, std::vector<int>> generate_local_course(
+std::tuple<std::vector<double>, std::vector<double>, std::vector<double>, std::vector<int>> dubins_path::generate_local_course(
     double L, const std::vector<double> &lengths, const std::vector<std::string> &mode, double maxc, double step_size) {
 
     int point_num = static_cast<int>(L / step_size) + lengths.size() + 3;
@@ -255,8 +248,7 @@ std::tuple<std::vector<double>, std::vector<double>, std::vector<double>, std::v
     return std::make_tuple(px, py, pyaw, directions);
 }
 
-
-std::tuple<std::vector<double>, std::vector<double>, std::vector<double>, std::vector<std::string>, double> planning_from_origin(
+std::tuple<std::vector<double>, std::vector<double>, std::vector<double>, std::vector<std::string>, double> dubins_path::planning_from_origin(
     double gx, double gy, double gyaw, double curv, double step_size) {
 
     double D = std::hypot(gx, gy);
@@ -303,7 +295,7 @@ std::tuple<std::vector<double>, std::vector<double>, std::vector<double>, std::v
     return std::make_tuple(x_list, y_list, yaw_list, best_mode, best_cost);  // Use std::make_tuple to create a tuple
 }
 
-Path calc_dubins_path(double sx, double sy, double syaw, double gx, double gy, double gyaw, double curv, double step_size = 0.1) {
+Path dubins_path::calc_dubins_path(double sx, double sy, double syaw, double gx, double gy, double gyaw, double curv, double step_size) {
     gx -= sx;
     gy -= sy;
 
@@ -327,7 +319,7 @@ Path calc_dubins_path(double sx, double sy, double syaw, double gx, double gy, d
         yaw_list[i] = pi_2_pi(lp_yaw[i] + syaw);
     }
 
-    std::cout << "Generated path with " << x_list.size() << " points." << std::endl;
+    // std::cout << "Generated path with " << x_list.size() << " points." << std::endl;
 
     // Final check to ensure sizes are consistent
     // if (x_list.size() != y_list.size() || y_list.size() != yaw_list.size()) {
@@ -344,63 +336,3 @@ Path calc_dubins_path(double sx, double sy, double syaw, double gx, double gy, d
 
     return {lengths, mode, x_list, y_list, yaw_list};
 }
-
-
-int main() {
-    // std::vector<std::tuple<double, double, double>> states = {
-    //     {0, 0, 0}, {10, 10, -90}, {20, 5, 60}, {30, 10, 120},
-    //     {35, -5, 30}, {25, -10, -120}, {15, -15, 100}
-    // };
-
-
-    std::vector<std::tuple<double, double, double>> states = {
-        {-3, 3, 120}, {10, -7, -30}, {10, 13, 30}, {20, 5, -25},
-        {35, 10, 180}, {32, -10, 180}, {5, -12, 90}
-    };
-
-    double max_c = 0.25;
-    std::vector<double> path_x, path_y, yaw;
-
-    for (size_t i = 0; i < states.size() - 1; ++i) {
-        double s_x = std::get<0>(states[i]);
-        double s_y = std::get<1>(states[i]);
-        double s_yaw = std::get<2>(states[i]) * M_PI / 180.0;
-        double g_x = std::get<0>(states[i + 1]);
-        double g_y = std::get<1>(states[i + 1]);
-        double g_yaw = std::get<2>(states[i + 1]) * M_PI / 180.0;
-
-        std::cout << "Processing segment " << i << ": Start (" << s_x << ", " << s_y << ", " << s_yaw << ") -> "
-                  << "Goal (" << g_x << ", " << g_y << ", " << g_yaw << ")" << std::endl;
-
-        Path path_i = calc_dubins_path(s_x, s_y, s_yaw, g_x, g_y, g_yaw, max_c);
-
-        if (!path_i.x.empty() && !path_i.y.empty() && !path_i.yaw.empty()) {
-            path_x.insert(path_x.end(), path_i.x.begin(), path_i.x.end());
-            path_y.insert(path_y.end(), path_i.y.begin(), path_i.y.end());
-            yaw.insert(yaw.end(), path_i.yaw.begin(), path_i.yaw.end());
-        } else {
-            std::cerr << "Invalid path generated for segment " << i << std::endl;
-        }
-
-        std::cout << "Path segment " << i << " processed. Path length: " << path_i.x.size() << std::endl;
-    }
-
-
-    // Plot the path
-    plt::plot(path_x, path_y, "gray");
-    plt::xlabel("X");
-    plt::ylabel("Y");
-    plt::title("Waypoints and Vehicle Path with Orientation");
-    plt::grid(true);
-
-    // Display the plot
-    plt::show();
-
-    return 0;
-}
-
-
-    // std::vector<std::tuple<double, double, double>> states = {
-    //     {0, 0, 0}, {10, 10, -90}, {20, 5, 60}, {30, 10, 120},
-    //     {35, -5, 30}, {25, -10, -120}, {15, -15, 100}
-    // };
